@@ -24,8 +24,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 from numpy import *
 import operator
 
+#初始化数据#
 def createDataSet():
     group = array([[1.0, 1.1], [1.0, 1.0], [0, 0], [0, 0.1]])
     labels = ['A', 'A', 'B', 'B']
     return group, labels
 
+#KNN算法函数#
+def classify0(inX, dataSet, labels, k):
+    dataSetSize = dataSet.shape[0] #此处shape的值为(4,2)，shape[0]为4.
+    diffMat = tile(inX, (dataSetSize, 1)) - dataSet #以4行一列的方式重复inX，此处为[1,1]，然后每个元素和group相减.
+    sqDiffMat = diffMat ** 2
+    sqDistances = sqDiffMat.sum(axis = 1) #每个点求和，即每列求和.
+    distances = sqDistances ** 0.5
+    sortedDistIndicies = distances.argsort()
+    
+    classCount = {}   
+    for i in range(k):
+        voteIlabel = labels[sortedDistIndicies[i]]
+        classCount[voteIlabel] = classCount.get(voteIlabel, 0) + 1 #类似于计数排序，每出现一次lebel得一票,此处投票结果:{'A': 2, 'B': 1}.
+    sortedClassCount = sorted(classCount.iteritems(), key = operator.itemgetter(1), reverse = True) #在classcount迭代中按照票数排序.
+    return sortedClassCount[0][0]
+
+#算法测试#
+group,labels = createDataSet()
+print "该点的类型为：",classify0([1,1], group, labels, 3)
+        
