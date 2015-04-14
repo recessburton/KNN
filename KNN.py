@@ -52,7 +52,7 @@ def classify0(inX, dataSet, labels, k):
 
 #将训练文本转换为标准矩阵#
 def file2matrix(filename):
-    fr = open(filename)
+    fr = open(filename) #打开文件
     arrayOLines = fr.readlines()
     numberOfLines = len(arrayOLines)
     returnMat = zeros((numberOfLines, 3))
@@ -61,20 +61,31 @@ def file2matrix(filename):
     for line in arrayOLines:
         line = line.strip()
         listFromLine = line.split('\t')
-        returnMat[index,:] = listFromLine[0:3]
-        labelindex = {'didntLike':'1','smallDoses':'2','largeDoses':'3'}
-        classLabelVector.append(int(labelindex[listFromLine[-1]]))
-        index += 1
+        returnMat[index,:] = listFromLine[0:3]  #提取前三列约会数据
+        labelindex = {'didntLike':'1','smallDoses':'2','largeDoses':'3'}    #用于从字符串类标签到数字类标签映射的字典
+        classLabelVector.append(int(labelindex[listFromLine[-1]]))  #从字符串类标签到数字类标签的映射
+        index += 1  #偏移指针，处理下一行。python没有C样式的for，所以每次的“善后工作”不能做更多的事。
     return returnMat, classLabelVector
 
+#归一化特征值
+def autoNorm(dataSet):
+    minVals = dataSet.min(0)    #最小值行向量
+    maxVals = dataSet.max(0)    #最小值行向量
+    ranges = maxVals - minVals
+    normDataSet = zeros(shape(dataSet))
+    m = dataSet.shape[0]        #样本总数
+    normDataSet = dataSet - tile(minVals, (m,1))    #以m行1列的方式重复minval行向量来构造被减矩阵，用原始值减，得到偏差
+    normDataSet /= tile(ranges, (m,1))             #偏差除以范围，得到0-1的归一化样本值 
+    return normDataSet
 
 
 #算法测试#
 #group,labels = createDataSet()
 #print "该点的类型为：",classify0([1,1], group, labels, 3)
 datingDataMat,datingLabels = file2matrix('datingTestSet.txt')
+datingDataMat = autoNorm(datingDataMat)
 #print datingDataMat,datingLabels[0:20]
 fig = plt.figure()
 ax = fig.add_subplot(111)
-ax.scatter(datingDataMat[:,1], datingDataMat[:,2],15.0*array(datingLabels),15.0*array(datingLabels))
+ax.scatter(datingDataMat[:,0], datingDataMat[:,1],15.0*array(datingLabels),15.0*array(datingLabels))
 plt.show()
