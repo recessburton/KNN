@@ -21,7 +21,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>
 '''
 
+#P17#
+
 from numpy import *
+import matplotlib
+import matplotlib.pyplot as plt
 import operator
 
 #初始化数据#
@@ -46,7 +50,31 @@ def classify0(inX, dataSet, labels, k):
     sortedClassCount = sorted(classCount.iteritems(), key = operator.itemgetter(1), reverse = True) #在classcount迭代中按照票数排序.
     return sortedClassCount[0][0]
 
+#将训练文本转换为标准矩阵#
+def file2matrix(filename):
+    fr = open(filename)
+    arrayOLines = fr.readlines()
+    numberOfLines = len(arrayOLines)
+    returnMat = zeros((numberOfLines, 3))
+    classLabelVector = []
+    index = 0
+    for line in arrayOLines:
+        line = line.strip()
+        listFromLine = line.split('\t')
+        returnMat[index,:] = listFromLine[0:3]
+        labelindex = {'didntLike':'1','smallDoses':'2','largeDoses':'3'}
+        classLabelVector.append(int(labelindex[listFromLine[-1]]))
+        index += 1
+    return returnMat, classLabelVector
+
+
+
 #算法测试#
-group,labels = createDataSet()
-print "该点的类型为：",classify0([1,1], group, labels, 3)
-        
+#group,labels = createDataSet()
+#print "该点的类型为：",classify0([1,1], group, labels, 3)
+datingDataMat,datingLabels = file2matrix('datingTestSet.txt')
+#print datingDataMat,datingLabels[0:20]
+fig = plt.figure()
+ax = fig.add_subplot(111)
+ax.scatter(datingDataMat[:,1], datingDataMat[:,2],15.0*array(datingLabels),15.0*array(datingLabels))
+plt.show()
