@@ -36,6 +36,7 @@ def createDataSet():
 
 #KNN算法函数#
 def classify0(inX, dataSet, labels, k):
+    'inX:测试数据集，dataSet:训练数据集，labels:特征标签集，k:候选类别排名个数'
     dataSetSize = dataSet.shape[0] #此处shape的值为(4,2)，shape[0]为4.
     diffMat = tile(inX, (dataSetSize, 1)) - dataSet #以4行一列的方式重复inX，此处为[1,1]，然后每个元素和group相减.
     sqDiffMat = diffMat ** 2
@@ -76,16 +77,40 @@ def autoNorm(dataSet):
     m = dataSet.shape[0]        #样本总数
     normDataSet = dataSet - tile(minVals, (m,1))    #以m行1列的方式重复minval行向量来构造被减矩阵，用原始值减，得到偏差
     normDataSet /= tile(ranges, (m,1))             #偏差除以范围，得到0-1的归一化样本值 
-    return normDataSet
+    return normDataSet, ranges, minVals
+
+#分类器测试函数
+def datingClassTest():
+    hoRatio = 0.10
+    datingDataMat,datingLabels = file2matrix('datingTestSet.txt')
+    normMat, ranges, minVals = autoNorm(datingDataMat)
+    m = normMat.shape[0]
+    numTestVecs = int(m*hoRatio)
+    errorCount = 0.0
+    for i in range(numTestVecs):
+        classifierResult = classify0(normMat[i,:], normMat[numTestVecs:m,:], datingLabels[numTestVecs:m], 3)
+        print "in #%d, the classifier came back with: %d, the real answer is: %d" % (i+1,classifierResult, datingLabels[i])
+        if (classifierResult != datingLabels[i]):
+            errorCount += 1.0
+    print "the total error rate is: %f of %d data." % (errorCount/float(numTestVecs),numTestVecs)
+    
+
+#主分类函数
+def classifyPerson():
+    resultList = ['not at all', 'in small doses', 'in large doses']
+    percentTats = float(raw_input("percentage of time spent playing video games?"))
+    ffMiles = float(raw_input("frequent flier miles earned per year?"))
+    iceCream = float(raw_input("liters of ice cream consumed per year?"))
+    
+    datingDataMat, datingLabels = file2matrix('datingTestSet.txt')
+    normMat, ranges, minVals = autoNorm(datingDataMat)
+    inArr = array([ffMiles, percentTats, iceCream])
+    classifierResult = classify0((inArr - minVals)/ranges, normMat, datingLabels, 3)
+    print "You will probably like this person: ",resultList[classifierResult -1]
+    
+    
+    
+if __name__ == '__main__':
+    classifyPerson()
 
 
-#算法测试#
-#group,labels = createDataSet()
-#print "该点的类型为：",classify0([1,1], group, labels, 3)
-datingDataMat,datingLabels = file2matrix('datingTestSet.txt')
-datingDataMat = autoNorm(datingDataMat)
-#print datingDataMat,datingLabels[0:20]
-fig = plt.figure()
-ax = fig.add_subplot(111)
-ax.scatter(datingDataMat[:,0], datingDataMat[:,1],15.0*array(datingLabels),15.0*array(datingLabels))
-plt.show()
